@@ -1,5 +1,6 @@
 import sys
 import json
+import requests
 
 from .validateJSONSchema import validateJSONSchema
 
@@ -23,7 +24,10 @@ def main():
         print('- - - - - - - - - -')
         if res.get("valid"):
             print('All schema contraints are fulfilled. Going to send the JSON file to our webserver for execution.')
-            #sendDataToAPI(input)
+            print(input)
+            x = requests.post('http://127.0.0.1:80', json = input)
+            print(x.text)
+            print(x)
         else:
             print('Not all object types of the schema are valid.')
             print(res.get("message"))
