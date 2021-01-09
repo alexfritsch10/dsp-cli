@@ -2,8 +2,6 @@ import sys
 import json
 import requests
 
-from .validateJSONSchema import validateJSONSchema
-
 def main():
     
     args = sys.argv[1:]
@@ -20,17 +18,14 @@ def main():
     try:    
         with open(args[1]) as data:
             input = json.load(data)
-        res = validateJSONSchema(input)
+        res = requests.post('http://127.0.0.1:80', json = input)
+        response = json.loads(res.text)
         print('- - - - - - - - - -')
-        if res.get("valid"):
-            print('All schema contraints are fulfilled. Going to send the JSON file to our webserver for execution.')
-            print(input)
-            x = requests.post('http://127.0.0.1:80', json = input)
-            print(x.text)
-            print(x)
+        if response.get("Status") == '200':
+            print('Schema fulfills all contraints was successfully process by the Backend.')
         else:
-            print('Not all object types of the schema are valid.')
-            print(res.get("message"))
+            print('Schema is not valid or could not be processed')
+            print(response.get("Message"))
         print('- - - - - - - - - -')
             
     except json.decoder.JSONDecodeError as jex:
