@@ -1,1 +1,1 @@
-Basic Python CLI for the FReD Infrastructure
+Basic Python CLI for configuring the FReD Infrastructure
