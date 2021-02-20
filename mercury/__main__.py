@@ -3,22 +3,44 @@ import json
 import requests
 
 def main():
-    
+
     args = sys.argv[1:]
+    input = {}
+    apiPath = "/"
+
     if len(args) == 0:
         print('If you want to deploy an infrastructure on FReD please enter: mercury deploy {IaC JSON File Path} \nAn Example for the JSON File is provided on our Website')
         sys.exit()
-    if not len(args) == 2:
-        print('Not enough arguments passed')
-        sys.exit()
-    if not args[0] == 'deploy':
-        print('Action {} not found'.format(args[0]))
+    if not args[0] == 'deploy' and not args[0] == 'process':
+        print('The command is unknown')
         sys.exit()
 
-    try:    
-        with open(args[1]) as data:
-            input = json.load(data)
-        res = requests.post('http://127.0.0.1:80', json = input)
+    if args[0] == 'deploy':
+        if not len(args) == 2:
+            print('If you want to deploy an infrastructure on FReD please enter: mercury deploy {IaC JSON File Path} \nAn Example for the JSON File is provided on our Website')
+            sys.exit()
+        try:
+            with open(args[1]) as data:
+                input = json.load(data)
+        except json.decoder.JSONDecodeError as jex:
+            print('JSON is not formatted Correctly')
+            print(jex)
+
+    if args[0] == 'process':
+        if len(args) < 4 or len(args) > 5:
+            print('If you want to process data on FReD please enter: mercury process {keygroup name} {key of the data} {value of the data} {optionnal : function handler name}')
+            sys.exit()
+        input = {
+            "keygroup": args[1],
+            "key": args[2],
+            "value": args[3],
+        }
+        if len(args) == 5:
+            input["handler"] = args[4]
+        apiPath = "/data"
+
+    try:
+        res = requests.post('http://127.0.0.1:8081' + apiPath, json = input)
         response = json.loads(res.text)
         print('- - - - - - - - - -')
         if response.get("Status") == '200':
@@ -27,11 +49,9 @@ def main():
             print('Schema is not valid or could not be processed')
             print(response.get("Message"))
         print('- - - - - - - - - -')
-            
-    except json.decoder.JSONDecodeError as jex:
-        print('JSON is not formatted Correctly')
-        print(jex)
 
+    except requests.exceptions.HTTPError as err:
+        print(err)
 
 if __name__ == '__main__':
     main()
